@@ -7,10 +7,11 @@ angular.module('ngGridPanel', ['ngAnimate'])
     .directive('gridPanel', function($animate, $compile, $window, $document, $timeout) {
             return {
                 restrict: 'AE',
-                scope: {
-                    onPanelOpened: '&',
-                    onPanelClosed: '&'
-                },
+                // scope: {
+                //     onPanelOpened: '&',
+                //     onPanelClosed: '&'
+                // },
+                scope: true,
                 compile: function(tElement, tAttr) {
                     var windowElement = angular.element($window);
                     var htmlAndBodyElement = angular.element($document).find('html, body');
