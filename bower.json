@@ -7,7 +7,7 @@
         "angular": ">= 1.2.0",
         "angular-animate": ">= 1.2.0"
     },
-    "homepage": "https://github.com/Hacklone/ng-grid-panel",
+    "homepage": "https://github.com/wearelandscape/ng-grid-panel",
     "ignore": [
         "example.html",
         "package.json",
