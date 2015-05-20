@@ -10,6 +10,7 @@ angular.module('ngGridPanel', ['ngAnimate'])
     scope: {
         onPanelOpened: '&',
         onPanelClosed: '&',
+        onPanelUpdate: '&',
     },
     compile: function(tElement, tAttr) {
       var windowElement = angular.element($window);
@@ -103,7 +104,6 @@ angular.module('ngGridPanel', ['ngAnimate'])
               closePanel();
 
               panelScope = $scope.$new(true, $scope.$parent);
-              panelScope[iterationVariableName] = item;
 
               panel = gridPanelTemplate.clone();
 
@@ -120,7 +120,7 @@ angular.module('ngGridPanel', ['ngAnimate'])
               $animate.enter(panel, null, lastGridItem);
 
               $compile(panel)(panelScope);
-              panelScope.$digest();
+              updatePanel();
 
               $scope.onPanelOpened({
                 item: item
@@ -130,6 +130,9 @@ angular.module('ngGridPanel', ['ngAnimate'])
             function updatePanel() {
               panelScope[iterationVariableName] = item;
               panelScope.$digest();
+              $scope.onPanelUpdate({
+                item: item
+              });
             }
 
             function closePanel() {
