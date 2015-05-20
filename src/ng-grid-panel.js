@@ -4,205 +4,202 @@
  * License: MIT
  */
 angular.module('ngGridPanel', ['ngAnimate'])
-    .directive('gridPanel', function($animate, $compile, $window, $document, $timeout) {
-            return {
-                restrict: 'AE',
-                // scope: {
-                //     onPanelOpened: '&',
-                //     onPanelClosed: '&'
-                // },
-                scope: true,
-                compile: function(tElement, tAttr) {
-                    var windowElement = angular.element($window);
-                    var htmlAndBodyElement = angular.element($document).find('html, body');
+.directive('gridPanel', ['$animate', '$compile', '$window', '$document', '$timeout', function($animate, $compile, $window, $document, $timeout) {
+  return {
+    restrict: 'AE',
+    scope: {
+        onPanelOpened: '&',
+        onPanelClosed: '&',
+    },
+    compile: function(tElement, tAttr) {
+      var windowElement = angular.element($window);
+      var htmlAndBodyElement = angular.element($document).find('html, body');
 
-                    var gridItemTemplate = getGridItemTemplate();
-                    var gridPanelTemplate = getGridPanelTemplate();
+      var gridItemTemplate = getGridItemTemplate();
+      var gridPanelTemplate = getGridPanelTemplate();
 
-                    if(!tAttr.repeat) {
-                        throw new Error('repeat attribute must be set');
-                    }
+      if(!tAttr.repeat) {
+        throw new Error('repeat attribute must be set');
+      }
 
-                    var matchArray = tAttr.repeat.match(/\s?(.*)\sin\s(.*)\s?/);
-                    if(!matchArray || matchArray.length < 3) {
-                        throw new Error('repeat attribute must be set like repeat="item in items"');
-                    }
+      var matchArray = tAttr.repeat.match(/\s?(.*)\sin\s(.*)\s?/);
+      if(!matchArray || matchArray.length < 3) {
+        throw new Error('repeat attribute must be set like repeat="item in items"');
+      }
 
-                    var iterationVariableName = matchArray[1];
-                    var collectionName = matchArray[2];
+      var iterationVariableName = matchArray[1];
+      var collectionName = matchArray[2];
 
-                    var panel;
-                    var panelOpenedAfter;
-                    var panelScope;
+      var panel;
+      var panelOpenedAfter;
+      var panelScope;
 
-                    return {
-                        pre: function($scope, $element) {
-                            _init();
-                            function _init() {
-                                $scope.$parent.$watchCollection(collectionName, _onItemsChanged);
-                            }
+      return {
+        pre: function($scope, $element) {
+          _init();
+          function _init() {
+            $scope.$parent.$watchCollection(collectionName, _onItemsChanged);
+          }
 
-                            function _onItemsChanged(items) {
-                                //todo: remove only items that need to be removed
-                                $element.empty();
+          function _onItemsChanged(items) {
+            //todo: remove only items that need to be removed
+            $element.empty();
 
-                                for(var i = 0, len = items.length; i < len; i++) {
-                                    var itemScope = $scope.$new();
-                                    var item = items[i];
+            for(var i = 0, len = items.length; i < len; i++) {
+              var itemScope = $scope.$new();
+              var item = items[i];
 
-                                    itemScope[iterationVariableName] = item;
+              itemScope[iterationVariableName] = item;
 
-                                    var itemElement = gridItemTemplate.clone();
+              var itemElement = gridItemTemplate.clone();
 
-                                    itemElement.addClass('grid-panel-item-' + i).on('click', function(i, item) {
-                                        return function() {
-                                            _onGridItemClick(i, item);
-                                        };
-                                    }(i, item));
+              itemElement.addClass('grid-panel-item-' + i).on('click', function(i, item) {
+                return function() {
+                  _onGridItemClick(i, item);
+                };
+              }(i, item));
 
-                                    $animate.enter(itemElement, $element);
+              $animate.enter(itemElement, $element);
 
-                                    $compile(itemElement)(itemScope);
-                                }
-                            }
+              $compile(itemElement)(itemScope);
+            }
+          }
 
-                            function _onGridItemClick(index, item) {
-                                var gridItem = $element.find('.grid-panel-item-' + index);
+          function _onGridItemClick(index, item) {
+            var gridItem = $element.find('.grid-panel-item-' + index);
 
-                                var lastGridItem = getLastGridItem(gridItem);
-                                var lastGridItemClass = lastGridItem.attr('class');
+            var lastGridItem = getLastGridItem(gridItem);
+            var lastGridItemClass = lastGridItem.attr('class');
 
-                                if(panel && panelOpenedAfter === lastGridItemClass) {
-                                    updatePanel();
-                                }
-                                else {
-                                    addPanel();
-                                }
+            if(panel && panelOpenedAfter === lastGridItemClass) {
+              updatePanel();
+            }
+            else {
+              addPanel();
+            }
 
-                                updateTriangle();
+            updateTriangle();
 
-                                scrollToPanel();
+            scrollToPanel();
 
-                                function getLastGridItem(gridItem) {
-                                    var current = gridItem;
-                                    var next = gridItem.next();
+            function getLastGridItem(gridItem) {
+              var current = gridItem;
+              var next = gridItem.next();
 
-                                    while(next.length && current.offset().top === next.offset().top) {
-                                        current = next;
+              while(next.length && current.offset().top === next.offset().top) {
+                current = next;
 
-                                        next = current.next();
-                                    }
+                next = current.next();
+              }
 
-                                    return current;
-                                }
+              return current;
+            }
 
-                                function addPanel() {
-                                    panelOpenedAfter = lastGridItemClass;
+            function addPanel() {
+              panelOpenedAfter = lastGridItemClass;
 
-                                    var isNewPanel = !!panel;
+              var isNewPanel = !!panel;
 
-                                    closePanel();
+              closePanel();
 
-                                    panelScope = $scope.$new();
-                                    panelScope[iterationVariableName] = item;
+              panelScope = $scope.$new(true, $scope.$parent);
+              panelScope[iterationVariableName] = item;
 
-                                    panel = gridPanelTemplate.clone();
+              panel = gridPanelTemplate.clone();
 
-                                    panel.find('.close-x').on('click', function(item) {
-                                        return function() {
-                                            closePanel();
+              panel.find('.close-x').on('click', function(item) {
+                return function() {
+                  closePanel();
 
-                                            $scope.onPanelClosed({
-                                                item: item
-                                            });
-                                        };
-                                    }(item));
+                  $scope.onPanelClosed({
+                    item: item
+                  });
+                };
+              }(item));
 
-                                    $animate.enter(panel, null, lastGridItem);
+              $animate.enter(panel, null, lastGridItem);
 
-                                    $compile(panel)(panelScope);
-                                    panelScope.$digest();
+              $compile(panel)(panelScope);
+              panelScope.$digest();
 
-                                    if(isNewPanel) {
-                                        $scope.onPanelOpened({
-                                            item: item
-                                        });
-                                    }
-                                }
+              $scope.onPanelOpened({
+                item: item
+              });
+            }
 
-                                function updatePanel() {
-                                    panelScope[iterationVariableName] = item;
-                                    panelScope.$digest();
-                                }
+            function updatePanel() {
+              panelScope[iterationVariableName] = item;
+              panelScope.$digest();
+            }
 
-                                function closePanel() {
-                                    if(panel) {
-                                        $animate.leave(panel);
-                                        panel = undefined;
-                                    }
+            function closePanel() {
+              if(panel) {
+                $animate.leave(panel);
+                panel = undefined;
+              }
 
-                                    if(panelScope) {
-                                        panelScope.$destroy();
-                                        panelScope = undefined;
-                                    }
+              if(panelScope) {
+                panelScope.$destroy();
+                panelScope = undefined;
+              }
 
-                                    $scope.$digest();
-                                }
+              $scope.$digest();
+            }
 
-                                function scrollToPanel() {
-                                    if(!panel) {
-                                        return;
-                                    }
+            function scrollToPanel() {
+              if(!panel) {
+                return;
+              }
 
-                                    $timeout(scrollAnimate, 350);
+              $timeout(scrollAnimate, 350);
 
-                                    function scrollAnimate() {
-                                        var panelOffset = panel.offset().top;
+              function scrollAnimate() {
+                var panelOffset = panel.offset().top;
 
-                                        var windowBottom = windowElement.scrollTop() + (windowElement.height() / 2);
+                var windowBottom = windowElement.scrollTop() + (windowElement.height() / 2);
 
-                                        if(panelOffset > windowBottom) {
-                                            htmlAndBodyElement.animate({
-                                                scrollTop: panelOffset - (gridItem.outerHeight(true) * 2)
-                                            }, 500);
-                                        }
-                                    }
-                                }
-
-                                function updateTriangle() {
-                                    if(!panel) {
-                                        return;
-                                    }
-
-                                    panel.find('.triangle').css({
-                                        left: gridItem.position().left + (gridItem.width() / 2)
-                                    });
-                                }
-                            }
-                        }
-                    };
-
-                    function getGridItemTemplate() {
-                        var gridItemTemplate = tElement.find('grid-panel-item, .grid-panel-item').clone();
-                        if(!gridItemTemplate.length) {
-                            throw new Error('grid-panel-item template must be set');
-                        }
-
-                        return gridItemTemplate;
-                    }
-
-                    function getGridPanelTemplate() {
-                        var gridPanelTemplate = tElement.find('grid-panel-content, .grid-panel-content').clone();
-                        if(!gridPanelTemplate.length) {
-                            throw new Error('grid-panel-content template must be set');
-                        }
-
-                        gridPanelTemplate
-                            .prepend(angular.element('<div class="close-x">'))
-                            .prepend(angular.element('<div class="triangle">'));
-
-                        return gridPanelTemplate;
-                    }
+                if(panelOffset > windowBottom) {
+                  htmlAndBodyElement.animate({
+                    scrollTop: panelOffset - (gridItem.outerHeight(true) * 2)
+                  }, 500);
                 }
-            };
-        });
+              }
+            }
+
+            function updateTriangle() {
+              if(!panel) {
+                return;
+              }
+
+              panel.find('.triangle').css({
+                left: gridItem.position().left + (gridItem.width() / 2)
+              });
+            }
+          }
+        }
+      };
+
+      function getGridItemTemplate() {
+        var gridItemTemplate = tElement.find('grid-panel-item, .grid-panel-item').clone();
+        if(!gridItemTemplate.length) {
+          throw new Error('grid-panel-item template must be set');
+        }
+
+        return gridItemTemplate;
+      }
+
+      function getGridPanelTemplate() {
+        var gridPanelTemplate = tElement.find('grid-panel-content, .grid-panel-content').clone();
+        if(!gridPanelTemplate.length) {
+          throw new Error('grid-panel-content template must be set');
+        }
+
+        gridPanelTemplate
+          .prepend(angular.element('<div class="close-x">'))
+          .prepend(angular.element('<div class="triangle">'));
+
+        return gridPanelTemplate;
+      }
+    }
+  };
+}]);

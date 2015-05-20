@@ -1,6 +1,6 @@
 {
     "name": "ng-grid-panel-scoped",
-    "version": "0.2.1",
+    "version": "0.2.2",
     "main": "./ng-grid-panel.js",
     "dependencies": {
         "jquery": ">= 1.6.2",
