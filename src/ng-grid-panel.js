@@ -80,9 +80,13 @@ angular.module('ngGridPanel', ['ngAnimate'])
               } else {
                 itemScopes[i][iterationVariableName] = items[i];
                 // $animate.enter(itemElements[i], $element);
-
               }
+            }
 
+            // delete elements that are no longer used
+            for (var i = items.length-1; i < itemElements.length; i++) {
+              $animate.leave(itemElements[i]);
+              itemElements.splice(i,1);
             }
 
             // $compile(gridItemLastTemplate.clone())($scope);
