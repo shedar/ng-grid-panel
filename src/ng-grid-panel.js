@@ -109,7 +109,7 @@ angular.module('ngGridPanel', ['ngAnimate'])
 
               closePanel();
 
-              panelScope = $scope.$new(true, $scope.$parent);
+              panelScope = $scope.$new(false, $scope.$parent);
 
               panel = gridPanelTemplate.clone();
 
