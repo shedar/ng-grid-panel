@@ -17,6 +17,7 @@ angular.module('ngGridPanel', ['ngAnimate'])
       var htmlAndBodyElement = angular.element($document).find('html, body');
 
       var gridItemTemplate = getGridItemTemplate();
+      var gridItemLastTemplate = getGridItemLastTemplate();
       var gridPanelTemplate = getGridPanelTemplate();
 
       if (!tAttr.repeat) {
@@ -45,6 +46,9 @@ angular.module('ngGridPanel', ['ngAnimate'])
           function _onItemsChanged(items) {
             //todo: remove only items that need to be removed
             $element.empty();
+            var gridItemLast = gridItemLastTemplate.clone();
+            $animate.enter(gridItemLast, $element);
+            $compile(gridItemLast)($scope.$new(false, $scope.$parent));
 
             for (var i = 0, len = items.length; i < len; i++) {
               var itemScope = $scope.$new(false, $scope.$parent);
@@ -64,6 +68,8 @@ angular.module('ngGridPanel', ['ngAnimate'])
 
               $compile(itemElement)(itemScope);
             }
+
+            // $compile(gridItemLastTemplate.clone())($scope);
           }
 
           function _onGridItemClick(index, item) {
@@ -183,12 +189,21 @@ angular.module('ngGridPanel', ['ngAnimate'])
       };
 
       function getGridItemTemplate() {
-        var gridItemTemplate = tElement.find('grid-panel-item, .grid-panel-item').clone();
+        var gridItemTemplate = tElement.find('grid-panel-item:first, .grid-panel-item').clone();
         if (!gridItemTemplate.length) {
           throw new Error('grid-panel-item template must be set');
         }
 
         return gridItemTemplate;
+      }
+
+      function getGridItemLastTemplate() {
+        var gridItemLast = tElement.find('grid-panel-last:first, .grid-panel-last').clone();
+        if (!gridItemLast.length) {
+          throw new Error('grid-panel-item template must be set');
+        }
+
+        return gridItemLast;
       }
 
       function getGridPanelTemplate() {
