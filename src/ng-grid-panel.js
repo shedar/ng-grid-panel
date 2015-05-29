@@ -36,37 +36,53 @@ angular.module('ngGridPanel', ['ngAnimate'])
       var panelOpenedAfter;
       var panelScope;
 
+      var itemScopes = [];
+      var itemElements = [];
+
       return {
         pre: function($scope, $element) {
           _init();
           function _init() {
-            $scope.$parent.$watchCollection(collectionName, _onItemsChanged);
-          }
-
-          function _onItemsChanged(items) {
-            //todo: remove only items that need to be removed
             $element.empty();
+            $scope.$parent.$watchCollection(collectionName, _onItemsChanged);
+
             var gridItemLast = gridItemLastTemplate.clone();
             $animate.enter(gridItemLast, $element);
             $compile(gridItemLast)($scope.$new(false, $scope.$parent));
+          }
+
+          function _onItemsChanged(items) {
+            // TODO: remove only items that need to be removed
+            // $element.empty()
 
             for (var i = 0, len = items.length; i < len; i++) {
-              var itemScope = $scope.$new(false, $scope.$parent);
-              var item = items[i];
+              // create new element only if needed
+              if (itemElements[i] === undefined) {
+                itemScopes[i] = $scope.$new(false, $scope.$parent);
+                itemScopes[i][iterationVariableName] = items[i];
 
-              itemScope[iterationVariableName] = item;
+                itemElements[i] = gridItemTemplate.clone();
 
-              var itemElement = gridItemTemplate.clone();
+                itemElements[i].addClass('grid-panel-item-' + i).on('click', (function(i, item) {
+                  return function() {
+                    _onGridItemClick(i, item);
+                  };
+                })(i, items[i]));
 
-              itemElement.addClass('grid-panel-item-' + i).on('click', (function(i, item) {
-                return function() {
-                  _onGridItemClick(i, item);
-                };
-              })(i, item));
+                if (i === 0) {
+                  $animate.enter(itemElements[i], $element);
+                } else {
+                  $animate.enter(itemElements[i], $element, itemElements[i-1]);
+                }
 
-              $animate.enter(itemElement, $element);
 
-              $compile(itemElement)(itemScope);
+                $compile(itemElements[i])(itemScopes[i]);
+              } else {
+                itemScopes[i][iterationVariableName] = items[i];
+                // $animate.enter(itemElements[i], $element);
+
+              }
+
             }
 
             // $compile(gridItemLastTemplate.clone())($scope);
