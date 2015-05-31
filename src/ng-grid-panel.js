@@ -187,20 +187,30 @@ angular.module('ngGridPanel', ['ngAnimate'])
                 return;
               }
 
-              $timeout(scrollAnimate, 350);
-
-              function scrollAnimate() {
+              var scrollAnimate = function scrollAnimate() {
                 var panelOffset = panel.offset().top;
 
-                var windowBottom = windowElement.scrollTop() + (windowElement.height() / 2);
+                var panelTop = panel.offset().top;
+                var panelHeight = panel.outerHeight(true);
+                var panelBottom = panelTop + panelHeight;
 
-                if (panelOffset > windowBottom) {
+                var windowTop = windowElement.scrollTop();
+                var windowHeight = windowElement.height();
+                var windowBottom = windowTop + windowHeight;
+
+                if (panelTop > windowTop + 200) {
                   htmlAndBodyElement.animate({
-                    scrollTop: panelOffset - (gridItem.outerHeight(true) * 2)
-                  }, 500);
+                    scrollTop: panelTop - 200
+                  }, 200);
+                } else if (panelBottom < windowBottom - 200) {
+                  htmlAndBodyElement.animate({
+                    scrollTop: panelTop - 200
+                  }, 200);
                 }
-              }
-            }
+              }; // function scrollAnimate
+
+              $timeout(scrollAnimate, 350);
+            } // function scrollToPanel
 
             function updateTriangle() {
               if (!panel) {
