@@ -92,16 +92,23 @@ angular.module('ngGridPanel', ['ngAnimate'])
             // $compile(gridItemLastTemplate.clone())($scope);
           }
 
+          var previousGridItemIndex;
+          var gridItemIndex;
           function _onGridItemClick(index, item) {
+            previousGridItemIndex = gridItemIndex;
+            gridItemIndex = index;
+
             var gridItem = $element.find('.grid-panel-item-' + index);
 
             var lastGridItem = getLastGridItem(gridItem);
             var lastGridItemClass = lastGridItem.attr('class');
 
-            if (panel && panelOpenedAfter === lastGridItemClass) {
+            if (panel && previousGridItemIndex === gridItemIndex) {
+              // if the same tile is selected again, close the panel
+              return closePanel();
+            } else if (panel && panelOpenedAfter === lastGridItemClass) {
               updatePanel();
-            }
-            else {
+            } else {
               addPanel();
             }
 
