@@ -1,4 +1,8 @@
 {
+    "name": "ng-grid-panel",
+    "version": "0.2.4",
+    "main": "ng-grid-panel.js",
+    "license": "MIT",
     "devDependencies": {
         "gulp": ">= 0.0.1",
         "gulp-less": ">= 0.0.1",
